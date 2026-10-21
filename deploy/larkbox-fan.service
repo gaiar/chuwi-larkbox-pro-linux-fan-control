@@ -1,0 +1,26 @@
+[Unit]
+Description=Quiet temperature-controlled fan for CHUWI LarkBox Pro
+After=systemd-modules-load.service
+ConditionPathExists=/sys/module/larkbox_fan
+
+[Service]
+Type=simple
+ExecStart=/opt/larkbox-fan/venv/bin/python /opt/larkbox-fan/larkbox_fan.py --config /etc/larkbox-fan.json
+Restart=no
+TimeoutStopSec=6
+RuntimeDirectory=larkbox-fan
+RuntimeDirectoryMode=0755
+UMask=0022
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=full
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+
+[Install]
+WantedBy=multi-user.target

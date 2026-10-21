@@ -1,0 +1,28 @@
+repos:
+  - repo: local
+    hooks:
+      - id: format
+        name: Python format
+        entry: .venv/bin/ruff format --check larkbox_fan.py tests
+        language: system
+        pass_filenames: false
+      - id: lint
+        name: Python lint
+        entry: .venv/bin/ruff check larkbox_fan.py tests
+        language: system
+        pass_filenames: false
+      - id: types
+        name: Python types
+        entry: .venv/bin/mypy
+        language: system
+        pass_filenames: false
+      - id: tests
+        name: Thermal policy and failure tests
+        entry: .venv/bin/pytest
+        language: system
+        pass_filenames: false
+      - id: shell
+        name: Shell scripts
+        entry: shellcheck scripts/install.sh scripts/uninstall.sh scripts/measure-noise.sh scripts/check-kernel-lsp.sh
+        language: system
+        pass_filenames: false

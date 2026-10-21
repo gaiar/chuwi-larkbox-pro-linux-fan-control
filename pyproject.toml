@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "larkbox-fan"
+version = "0.1.0"
+description = "Quiet, fail-safe Ubuntu fan control for CHUWI LarkBox Pro"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/gaiar/chuwi-larkbox-pro-linux-fan-control"
+Documentation = "https://github.com/gaiar/chuwi-larkbox-pro-linux-fan-control/blob/main/docs/installation.md"
+Issues = "https://github.com/gaiar/chuwi-larkbox-pro-linux-fan-control/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "pre-commit>=3.8"]
+
+[project.scripts]
+larkbox-fan = "larkbox_fan:main"
+
+[tool.setuptools]
+py-modules = ["larkbox_fan"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["larkbox_fan.py"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=larkbox_fan --cov-branch --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
+pythonpath = ["."]

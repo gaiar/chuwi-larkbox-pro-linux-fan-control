@@ -1,0 +1,88 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 7 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  python-and-c:
+    name: Python ${{ matrix.python }} and C checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12', '3.14']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y build-essential shellcheck clangd acpica-tools
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+      - name: Python validation
+        run: |
+          .venv/bin/ruff format --check larkbox_fan.py tests
+          .venv/bin/ruff check larkbox_fan.py tests
+          .venv/bin/mypy
+          .venv/bin/pytest
+          .venv/bin/python larkbox_fan.py --config deploy/larkbox-fan.json --check-config
+      - name: Shell, C and ACPI validation
+        run: |
+          shellcheck scripts/*.sh
+          clangd --check=tools/pcm_rms.c
+          cd kernel
+          iasl -we -p /tmp/larkbox-control larkbox_control.asl
+  kernel-build:
+    name: DKMS and clangd on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            headers: linux-headers-generic-hwe-22.04
+          - os: ubuntu-24.04
+            headers: linux-headers-generic-hwe-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools and select headers
+        env:
+          HEADER_PACKAGE: ${{ matrix.headers }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y build-essential dkms clangd python3-venv "$HEADER_PACKAGE"
+          python3 -m venv .venv
+          headers=$(find /usr/src -maxdepth 1 -type d -name 'linux-headers-*-generic' | sort -V | tail -n 1)
+          test -n "$headers"
+          kernel_version=${headers##*/linux-headers-}
+          printf 'KERNEL_VERSION=%s\nKERNEL_BUILD=%s\n' "$kernel_version" "$headers" >> "$GITHUB_ENV"
+      - name: DKMS compile and install (never load)
+        run: |
+          sudo install -d /usr/src/larkbox-fan-0.1.0
+          sudo install -m 0644 kernel/Makefile kernel/dkms.conf kernel/larkbox_fan.c kernel/larkbox_control.hex /usr/src/larkbox-fan-0.1.0/
+          sudo dkms add -m larkbox-fan -v 0.1.0
+          sudo dkms build -m larkbox-fan -v 0.1.0 -k "$KERNEL_VERSION"
+          sudo dkms install -m larkbox-fan -v 0.1.0 -k "$KERNEL_VERSION"
+          modinfo -k "$KERNEL_VERSION" larkbox_fan
+      - name: Kernel C language-server validation
+        run: scripts/check-kernel-lsp.sh "$KERNEL_BUILD"
+      - name: Build log on failure
+        if: failure()
+        run: sudo find /var/lib/dkms/larkbox-fan -name make.log -exec cat {} \;

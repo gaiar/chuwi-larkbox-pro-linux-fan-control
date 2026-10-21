@@ -93,6 +93,14 @@ See [firmware findings and sensor limitations](docs/research.md) and
 [validation results](docs/validation.md). BIOS 1.05 differs from the live 1.07
 implementation and is not treated as compatible.
 
+## Measured result
+
+In one matched two-minute, four-worker SHA-256 comparison, the automatic policy
+achieved **99.49% of full-on throughput**, with a **64°C** peak versus 63°C with
+the fan continuously on. Idle microphone samples were roughly 1–3 dB lower than
+fan-on samples. These are relative webcam readings, not calibrated dBA. See the
+[test method and limitations](docs/validation.md) before comparing results.
+
 ## Kernel updates, removal and development
 
 DKMS rebuilds for new kernels when headers and a compatible toolchain are present.

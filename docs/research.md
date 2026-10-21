@@ -86,6 +86,38 @@ it never points into freed module memory. No persistent firmware change remains.
 These are software safeguards. A stalled kernel or ACPI interpreter can prevent
 recovery. See [DISCLAIMER.md](../DISCLAIMER.md).
 
+## Windows factory-image cross-check
+
+**Seen:** the supplied Windows archive completed during the investigation. Its
+SHA-256 is `a6cfd8e5ca5cf95631c9ec50afdc7aaba02da2567280b631d3b421b75baf8f43`.
+The main WIM identifies Windows 10 Home build 18363.1256. A copy was extracted
+with `bsdtar`; `7zz` inventoried the WIM and extracted only the two DPTF driver
+packages, 29 files totaling about 20 MB. No Windows binaries were executed.
+
+Under `Windows/System32/DriverStore/FileRepository`:
+
+- `dptf_acpi.inf_amd64_9d4c8f33f98958fc/dptf_acpi.inf`, line 29, identifies Intel
+  DPTF **8.4.11000.6436**, dated 2018-04-27. Lines 52–65 bind the standard Intel
+  ACPI participant IDs, including INT3403 (generic) and INT3404 (fan).
+- `dptf_cpu.inf_amd64_52334f33ec642379/dptf_cpu.inf` registers `esif_lf` and
+  `esifsvc`, with `esif_lf.sys`, `esif_umdf2.dll` and `esif_uf.exe`.
+- `esif_lf.sys`, SHA-256
+  `01c157d26996a27b5c3d06ddfa0f58319681bb6c7b9089d21b8e61b3e826655d`,
+  has a `_TMP` action dispatch at image RVA `0xa4c8`, branching to `0xa541` and
+  calling the handler at `0xae14`. This is static code evidence, not a trace of
+  the running Windows system.
+- `dptf_acpi.sys`, SHA-256
+  `0203f6844fdec4eaa31d0f8441e2e0be07f9b7cf55155addd15cf52008bdde2b`,
+  contains the diagnostic identifier `acpi_evaluate_object` at file offset
+  `0x8b80`. The framework also carries temperature and polling policy components.
+
+**Inferred:** Intel DPTF's ACPI temperature queries are a plausible trigger for
+this BIOS's side-effecting SEN4 temperature method under Windows. The installed
+packages support that explanation; their presence does not prove the exact
+Windows polling schedule. Linux live tests independently established the control
+path. No Windows driver is needed by the service, and no vendor binaries are
+redistributed. Variable-speed capability remains unconfirmed.
+
 ## Primary references
 
 - [Intel Gemini Lake pinctrl driver](https://github.com/torvalds/linux/blob/v6.8/drivers/pinctrl/intel/pinctrl-geminilake.c)

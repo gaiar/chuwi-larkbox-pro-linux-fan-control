@@ -23,6 +23,8 @@ kernel 6.8.0-147-generic, on 2026-10-21. No reboot or firmware flash was perform
 - SIGKILL of the running service while the fan was off restored full-on at the
   three-second observation; the fault stayed latched.
 - Module unload/reload left full cooling and reused the helper table successfully.
+- The installed DKMS/systemd service is active and enabled. Its first 30-second
+  run ended with normal fan-off operation, valid temperatures and no fault.
 - The temporary service cooled and stopped the fan after its initial 30-second
   run. Existing thermald, Turbo-enabled state and the server container stayed up.
 

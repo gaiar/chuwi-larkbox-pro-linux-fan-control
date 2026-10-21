@@ -118,6 +118,13 @@ Windows polling schedule. Linux live tests independently established the control
 path. No Windows driver is needed by the service, and no vendor binaries are
 redistributed. Variable-speed capability remains unconfirmed.
 
+## Follow-up: PWM versus on/off
+
+The [PWM investigation](pwm-investigation.md) adds PEI/SMM disassembly, Intel pin
+capabilities, live ACPI queries and the Windows fan-level dispatch. GPIO_138 has
+no native hardware PWM alternate function; the apparent ACPI percentage backend
+is inactive. Electrical modification or software PWM remains unverified.
+
 ## Primary references
 
 - [Intel Gemini Lake pinctrl driver](https://github.com/torvalds/linux/blob/v6.8/drivers/pinctrl/intel/pinctrl-geminilake.c)

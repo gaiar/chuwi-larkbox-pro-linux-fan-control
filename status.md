@@ -16,3 +16,13 @@
   DKMS/compiler/clangd jobs.
 - Still unverified: cold boot/AC loss, physical suspend/resume, other BIOS versions,
   fan RPM/PWM and recovery during a kernel or ACPI hang. See docs/validation.md.
+
+## PWM follow-up
+
+- Used leanrea to inventory 252 distinct firmware PE/TE images, including newly
+  extracted PEI volumes; traced GPIO_138's PlatformInit record and SMM off write.
+- Intel pin map rules out native hardware PWM on GPIO_138; PWM0–3 use GPIO_42–45.
+- Read-only live queries confirmed DFAN=0, ECAV=0, TFN1 absent and RPM undefined.
+- Windows DPTF primitive 87 maps to _FSL, whose firmware backend is inactive.
+- Documented the distinction between proven stock on/off control and unverified
+  electrical modifications or software PWM. Existing daemon/config unchanged.

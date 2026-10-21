@@ -26,7 +26,9 @@ Read the [disclaimer](DISCLAIMER.md) and verify your exact hardware before insta
 The module also verifies the ACPI implementation. Other BIOS versions, LarkBox X,
 LarkBox S and other CHUWI models are not supported. **RPM feedback and adjustable
 PWM speed have not been found.** The configurable curve is an on/off temperature
-policy; no fan-speed numbers are invented.
+policy; no fan-speed numbers are invented. The [deeper PWM investigation](docs/pwm-investigation.md)
+traces the BIOS initialization, inactive ACPI percentage methods, Windows drivers
+and the fan pin’s lack of hardware PWM multiplexing.
 
 ## What it does
 

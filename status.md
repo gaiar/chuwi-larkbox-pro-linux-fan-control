@@ -12,6 +12,7 @@
   ACPI participant path. No proprietary binaries are included.
 - Local checks: 43 tests, 100% Python statement/branch coverage, Ruff, mypy,
   compiler warnings, clangd, ShellCheck, ASL compiler and actionlint.
-- Hosted CI is validating Python 3.10/3.12/3.14 and two Ubuntu HWE kernel builds.
+- [Hosted CI passed](https://github.com/gaiar/chuwi-larkbox-pro-linux-fan-control/actions/runs/39596525546): Python 3.10/3.12/3.14 and both Ubuntu HWE
+  DKMS/compiler/clangd jobs.
 - Still unverified: cold boot/AC loss, physical suspend/resume, other BIOS versions,
   fan RPM/PWM and recovery during a kernel or ACPI hang. See docs/validation.md.

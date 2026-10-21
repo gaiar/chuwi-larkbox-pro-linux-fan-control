@@ -8,3 +8,7 @@ CompileFlags:
     - -fsanitize=bounds-strict
     - -mrecord-mcount
     - -fstrict-flex-arrays=*
+    - -mindirect-branch-cs-prefix
+    - -mfunction-return=*
+    - -fzero-call-used-regs=*
+    - -ftrivial-auto-var-init=*

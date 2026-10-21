@@ -3,10 +3,11 @@
 set -eu
 [ "$(id -u)" -eq 0 ] || { echo 'Run with sudo.' >&2; exit 1; }
 project_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-[ "$(cat /sys/class/dmi/id/product_name)" = 'LarkBox Pro' ] &&
-[ "$(cat /sys/class/dmi/id/bios_version)" = 'GB01_ZW_1_07' ] || {
-    echo 'Only CHUWI LarkBox Pro BIOS GB01_ZW_1_07 is supported.' >&2; exit 1;
-}
+if [ "$(cat /sys/class/dmi/id/product_name)" != 'LarkBox Pro' ] ||
+   [ "$(cat /sys/class/dmi/id/bios_version)" != 'GB01_ZW_1_07' ]; then
+    echo 'Only CHUWI LarkBox Pro BIOS GB01_ZW_1_07 is supported.' >&2
+    exit 1
+fi
 for tool in dkms make cc python3 systemctl modprobe rmmod; do
     command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 1; }
 done

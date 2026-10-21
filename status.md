@@ -26,3 +26,21 @@
 - Windows DPTF primitive 87 maps to _FSL, whose firmware backend is inactive.
 - Documented the distinction between proven stock on/off control and unverified
   electrical modifications or software PWM. Existing daemon/config unchanged.
+
+## Startup persistence hardening
+
+- Added a required one-shot preparation service that explicitly loads coretemp
+  and the fan driver before each daemon start; failures are visible rather than
+  skipped by ConditionPathExists. Runtime safety faults still require manual
+  restart after diagnosis, preserving full-on behavior.
+- Installer now builds the running kernel plus installed fallback boot images
+  with available headers. Both 6.8.0-147 and 6.8.0-146 are installed on the target.
+- Live test began with SFAN=0, full-on output and the module unloaded. Starting
+  only the main service loaded dependencies and returned to quiet operation at
+  40°C after 30 seconds, with no fault.
+- Server boot ID, existing container, thermald, schedutil and Turbo state stayed
+  unchanged. Physical AC-loss/BIOS-reset validation remains outstanding.
+- Added systemd verification to installer/CI and documented the boot sequence,
+  diagnostic commands and distinction from BIOS automatic power-on behavior.
+- Full local checks: 43 tests, 100% Python statement/branch coverage, Ruff, mypy,
+  ShellCheck and actionlint passed. Driver source and thermal policy unchanged.

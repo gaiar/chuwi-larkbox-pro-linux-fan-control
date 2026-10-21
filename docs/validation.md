@@ -28,6 +28,25 @@ kernel 6.8.0-147-generic, on 2026-10-21. No reboot or firmware flash was perform
 - The temporary service cooled and stopped the fan after its initial 30-second
   run. Existing thermald, Turbo-enabled state and the server container stayed up.
 
+## Startup recovery without a server outage
+
+On 2026-10-21 the hardened installer built and installed the module for both
+bootable kernels, `6.8.0-147-generic` and fallback `6.8.0-146-generic`, with matching
+headers. Only 147 was loaded; 146 remains compile/install validated.
+
+A separate startup test stopped the fan daemon, confirmed full cooling with
+`SFAN=0` and GPIO `0x44000201`, and unloaded the module. Starting only
+`larkbox-fan.service` successfully pulled in its preparation dependency, loaded
+the driver with control enabled and found all five CPU temperature readings.
+At 30 seconds the daemon stopped the fan at 40°C; the kernel reported `SFAN=1`,
+GPIO `0x44000200`, an active off lease and no fault. Preparation reran on both
+the installer start and this later service start. Unit validation passed.
+
+The boot ID did not change. The existing server container and thermald remained
+active. Turbo remained enabled and the governor stayed `schedutil`. These checks
+exercise runtime reinitialization with Smart Fan disabled, not a physical BIOS
+reset, cold boot, or loss of AC power. Those still need a maintenance window.
+
 ## Microphone observations
 
 Anker PowerConf C200 beside the mini PC, ALSA hw:C200,0, 48 kHz stereo S16_LE,

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Require explicit CPU sensor and fan-driver preparation before daemon startup.
+- Report module-load failures instead of silently skipping the service.
+- Build support for installed fallback kernels when their headers are present.
+- Validate systemd dependencies in the installer and hosted CI.
+- Document startup after BIOS Smart Fan resets and the remaining cold-boot test.
+
 ## 0.1.0
 
 - LarkBox Pro BIOS 1.07 control through its native ACPI Smart Fan routine.

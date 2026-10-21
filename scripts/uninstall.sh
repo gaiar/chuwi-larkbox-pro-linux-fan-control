@@ -15,7 +15,8 @@ fi
 if dkms status -m larkbox-fan -v 0.1.0 | grep -q .; then
     dkms remove -m larkbox-fan -v 0.1.0 --all
 fi
-rm -f /etc/systemd/system/larkbox-fan.service /etc/modprobe.d/larkbox-fan.conf \
+rm -f /etc/systemd/system/larkbox-fan.service \
+    /etc/systemd/system/larkbox-fan-prepare.service /etc/modprobe.d/larkbox-fan.conf \
     /etc/modules-load.d/larkbox-fan.conf
 systemctl daemon-reload
 echo 'Removed startup and DKMS registration. Configuration and /opt sources retained.'

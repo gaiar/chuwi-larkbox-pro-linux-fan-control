@@ -1,0 +1,12 @@
+[Unit]
+Description=Load CHUWI LarkBox Pro fan control and CPU sensors
+After=systemd-modules-load.service
+Before=larkbox-fan.service
+
+[Service]
+Type=oneshot
+# Remain inactive after success so every daemon start rechecks the modules.
+RemainAfterExit=no
+ExecStart=/usr/sbin/modprobe coretemp
+ExecStart=/usr/sbin/modprobe larkbox_fan allow_control=1
+TimeoutStartSec=30

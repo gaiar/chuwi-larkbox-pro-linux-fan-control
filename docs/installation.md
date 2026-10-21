@@ -41,8 +41,10 @@ cd chuwi-larkbox-pro-linux-fan-control
 sudo ./scripts/install.sh
 ```
 
-The installer builds through DKMS, first probes the machine in read-only mode,
-then enables guarded control and the systemd service. It preserves an existing
+The installer builds through DKMS for the running kernel and other installed
+`/boot/vmlinuz-*` images with matching headers, probes the machine in read-only
+mode, then enables guarded control and the systemd service. Missing fallback
+headers produce a warning; those kernels need headers and a DKMS build before use. It preserves an existing
 `/etc/larkbox-fan.json`. Hardware rejection or a build error stops installation.
 It does not flash firmware, write UEFI variables, change CPU clocks/power limits,
 or disable thermald. No BIOS Smart Fan change is needed for the runtime control
@@ -60,6 +62,46 @@ journalctl -u larkbox-fan -f
 Expect full cooling for at least the first 30 seconds. If all CPU readings remain
 cool, the fan can then stop. `fan_on` is GPIO state, not RPM. Confirm the physical
 fan operates and temperatures remain sensible.
+
+## Automatic control after power off or AC loss
+
+The policy lives in `/etc/larkbox-fan.json`, and systemd enables it at every Ubuntu
+boot. It does not depend on the BIOS remembering Smart Fan. The driver reapplies
+`SFAN`/`STMP` in runtime ACPI memory; no saved BIOS setting is modified.
+
+At boot, `modules-load.d` requests the CPU sensor and fan drivers. The required
+`larkbox-fan-prepare.service` also loads `coretemp` and `larkbox_fan` explicitly
+before the daemon starts, covering a missed early module load. Preparation runs
+again on each daemon start. Driver initialization requests full cooling; the
+daemon keeps it on for at least 30 seconds before considering a quiet interval.
+
+Module failures are visible in the preparation unit and prevent daemon startup.
+Runtime faults retain full cooling and require diagnosis and a deliberate service
+restart; the daemon does not repeatedly restart and clear a safety fault.
+
+```sh
+systemctl is-enabled larkbox-fan.service
+systemctl status larkbox-fan.service --no-pager
+journalctl -b -u larkbox-fan-prepare -u larkbox-fan --no-pager
+cat /sys/kernel/larkbox_fan/status
+```
+
+The preparation unit normally reports **inactive (dead)** after a successful
+one-shot run; its `Result=success` and the active main service are what matter.
+The main service must be enabled. The preparation unit is pulled in automatically
+and does not need a separate enable command.
+
+Starting from an unloaded module and runtime Smart Fan disabled has been tested
+without rebooting the server. A physical cold boot after AC loss remains an
+outstanding validation step. During a planned maintenance window, shut Ubuntu
+down cleanly, disconnect/reconnect power, turn it on, and repeat the checks above.
+Verify physical fan operation and temperatures. Firmware automatic power-on after
+AC restoration and selection of the Ubuntu boot disk are separate BIOS settings;
+this service takes effect once Ubuntu starts. It cannot restore a BIOS boot or
+Secure Boot setting that prevents Ubuntu or the module from loading.
+
+The ordering follows [systemd unit dependencies](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html)
+and [one-shot service behavior](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html).
 
 ## Kernel upgrades
 
@@ -80,9 +122,6 @@ loading. Hosted CI checks DKMS compilation on Ubuntu HWE headers; it does not
 prove live cooling on every kernel. If the driver cannot load, the firmware's
 original behavior applies and the custom service cannot control cooling.
 
-The reboot/power-loss path has not yet been physically validated on the original
-server; deployment was tested without interrupting its services.
-
 ## Update this project
 
 ```sh
@@ -97,6 +136,7 @@ ACPI evidence; do not remove the compatibility gate.
 
 ## Troubleshooting and removal
 
+- Failed startup: inspect `journalctl -b -u larkbox-fan-prepare -u larkbox-fan`.
 - `No such device` during module load: unsupported board, BIOS or ACPI fingerprint.
 - `Key was rejected by service`: Secure Boot/module-signing issue.
 - `control_enabled: 0`: module is in read-only mode. Stop the service, unload it,

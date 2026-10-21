@@ -40,6 +40,11 @@ jobs:
           .venv/bin/mypy
           .venv/bin/pytest
           .venv/bin/python larkbox_fan.py --config deploy/larkbox-fan.json --check-config
+      - name: Validate boot service dependencies (never load hardware modules)
+        run: |
+          sudo install -d /opt/larkbox-fan/venv/bin
+          sudo ln -s "$(command -v python)" /opt/larkbox-fan/venv/bin/python
+          systemd-analyze verify deploy/larkbox-fan.service deploy/larkbox-fan-prepare.service
       - name: Shell, C and ACPI validation
         run: |
           shellcheck scripts/*.sh

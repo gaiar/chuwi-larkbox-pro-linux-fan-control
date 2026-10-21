@@ -8,7 +8,7 @@ if [ "$(cat /sys/class/dmi/id/product_name)" != 'LarkBox Pro' ] ||
     echo 'Only CHUWI LarkBox Pro BIOS GB01_ZW_1_07 is supported.' >&2
     exit 1
 fi
-for tool in dkms make cc python3 systemctl modprobe rmmod; do
+for tool in dkms make cc python3 systemctl systemd-analyze modprobe rmmod; do
     command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 1; }
 done
 [ -d "/lib/modules/$(uname -r)/build" ] || {
@@ -34,6 +34,20 @@ install -m 0644 "$project_root/kernel/Makefile" "$project_root/kernel/dkms.conf"
 dkms add -m larkbox-fan -v 0.1.0
 dkms build -m larkbox-fan -v 0.1.0 -k "$(uname -r)"
 dkms install -m larkbox-fan -v 0.1.0 -k "$(uname -r)"
+# Cover installed fallback boot images too; DKMS autoinstall covers future kernels.
+for kernel_image in /boot/vmlinuz-*; do
+    [ -f "$kernel_image" ] || continue
+    kernel_version=${kernel_image##*/vmlinuz-}
+    [ "$kernel_version" != "$(uname -r)" ] || continue
+    if [ ! -d "/lib/modules/$kernel_version/build" ]; then
+        printf 'WARNING: %s lacks headers; install linux-headers-%s before booting it.\n' \
+            "$kernel_version" "$kernel_version" >&2
+        continue
+    fi
+    printf 'Building fan support for fallback kernel %s…\n' "$kernel_version"
+    dkms build -m larkbox-fan -v 0.1.0 -k "$kernel_version"
+    dkms install -m larkbox-fan -v 0.1.0 -k "$kernel_version"
+done
 printf 'Checking firmware compatibility in read-only mode…\n'
 modprobe larkbox_fan allow_control=0
 cat /sys/kernel/larkbox_fan/status
@@ -47,10 +61,12 @@ if [ ! -e /etc/larkbox-fan.json ]; then
 fi
 /opt/larkbox-fan/venv/bin/python /opt/larkbox-fan/larkbox_fan.py \
     --config /etc/larkbox-fan.json --check-config
-install -m 0644 "$project_root/deploy/larkbox-fan.service" /etc/systemd/system/
+install -m 0644 "$project_root/deploy/larkbox-fan.service" \
+    "$project_root/deploy/larkbox-fan-prepare.service" /etc/systemd/system/
 printf 'options larkbox_fan allow_control=1\n' > /etc/modprobe.d/larkbox-fan.conf
-printf 'larkbox_fan\n' > /etc/modules-load.d/larkbox-fan.conf
-modprobe larkbox_fan allow_control=1
+printf 'coretemp\nlarkbox_fan\n' > /etc/modules-load.d/larkbox-fan.conf
+systemd-analyze verify /etc/systemd/system/larkbox-fan.service \
+    /etc/systemd/system/larkbox-fan-prepare.service
 systemctl daemon-reload
 systemctl enable --now larkbox-fan.service
 systemctl is-active --quiet larkbox-fan.service

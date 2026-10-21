@@ -38,7 +38,8 @@ and the fan pin’s lack of hardware PWM multiplexing.
 - Uses a three-second kernel off lease and independent temperature guard.
 - Requests full cooling on service exit, missed leases, temperature faults,
   suspend/resume and module unload.
-- Builds through DKMS for kernel updates and starts through systemd.
+- Loads the driver and CPU sensors before starting on every Ubuntu boot.
+- Builds through DKMS for kernel updates and installed fallback kernels with headers.
 - Leaves CPU Turbo, clock/power policy and thermald in place.
 - Includes a microphone level tool that retains statistics, not audio recordings.
 
@@ -102,6 +103,14 @@ achieved **99.49% of full-on throughput**, with a **64°C** peak versus 63°C wi
 the fan continuously on. Idle microphone samples were roughly 1–3 dB lower than
 fan-on samples. These are relative webcam readings, not calibrated dBA. See the
 [test method and limitations](docs/validation.md) before comparing results.
+
+## Power cuts and BIOS Smart Fan resets
+
+The service stores its policy on disk and reapplies runtime fan control whenever
+Ubuntu starts, independently of the saved BIOS Smart Fan setting. Startup first
+loads the CPU sensors and fan driver, with full cooling during initialization.
+The module-unloaded/Smart-Fan-disabled startup path has been tested; a physical
+power-cycle test is still pending. See [boot behavior and verification](docs/installation.md#automatic-control-after-power-off-or-ac-loss).
 
 ## Kernel updates, removal and development
 

@@ -1,10 +1,10 @@
 [Unit]
 Description=Quiet temperature-controlled fan for CHUWI LarkBox Pro
-After=systemd-modules-load.service
-ConditionPathExists=/sys/module/larkbox_fan
+Requires=larkbox-fan-prepare.service
+After=larkbox-fan-prepare.service
 
 [Service]
-Type=simple
+Type=exec
 ExecStart=/opt/larkbox-fan/venv/bin/python /opt/larkbox-fan/larkbox_fan.py --config /etc/larkbox-fan.json
 Restart=no
 TimeoutStopSec=6

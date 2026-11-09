@@ -16,7 +16,8 @@
 
 #define LEASE_MS 3000
 #define TICK_MS 250
-#define OFF_ADMISSION_MC 60000
+/* Off stays below the firmware's own STMP=65 C on point and the 65 C guard. */
+#define OFF_ADMISSION_MC 64000
 #define EMERGENCY_MC 65000
 #define PAD_OFF 0x44000200ULL
 #define PAD_ON  0x44000201ULL
@@ -360,4 +361,4 @@ module_exit(larkbox_exit);
 MODULE_LICENSE("Dual MIT/GPL");
 MODULE_AUTHOR("gaiar and contributors");
 MODULE_DESCRIPTION("LarkBox Pro GPIO fan control with bounded off leases and ACPI fallback");
-MODULE_VERSION("0.1.0");
+MODULE_VERSION("0.2.0");

@@ -73,7 +73,7 @@ with a unique method that changes SFAN/STMP through the interpreter and invokes
 the existing SEN4 routine. It does not replace or patch vendor AML.
 
 On = SFAN 0 plus a native poll. Off = SFAN 1, STMP 65 plus a native poll, only
-accepted below a 60°C package reading. Native polls can still turn cooling back
+accepted below a 64°C package reading (60°C before 0.2.0). Native polls can still turn cooling back
 on above 65°C. Off must be renewed within three seconds. A 250 ms kernel worker
 checks the lease and package temperature; 65°C, read failure or lease expiry
 requests full cooling and latches a fault. An explicit on command clears a fault.

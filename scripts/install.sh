@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 set -eu
 [ "$(id -u)" -eq 0 ] || { echo 'Run with sudo.' >&2; exit 1; }
+version=0.2.0
 project_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 if [ "$(cat /sys/class/dmi/id/product_name)" != 'LarkBox Pro' ] ||
    [ "$(cat /sys/class/dmi/id/bios_version)" != 'GB01_ZW_1_07' ]; then
@@ -24,16 +25,18 @@ if [ -d /sys/module/larkbox_fan ]; then
     fi
     rmmod larkbox_fan
 fi
-if dkms status -m larkbox-fan -v 0.1.0 | grep -q .; then
-    dkms remove -m larkbox-fan -v 0.1.0 --all
-fi
-install -d /usr/src/larkbox-fan-0.1.0
+# Remove every registered version, including releases before this script.
+for registered in $(dkms status -m larkbox-fan |
+    sed -n 's|^larkbox-fan[/, ]\{1,2\}\([^,:]*\)[,:].*|\1|p' | sort -u); do
+    dkms remove -m larkbox-fan -v "$registered" --all
+done
+install -d "/usr/src/larkbox-fan-$version"
 install -m 0644 "$project_root/kernel/Makefile" "$project_root/kernel/dkms.conf" \
     "$project_root/kernel/larkbox_fan.c" "$project_root/kernel/larkbox_control.hex" \
-    /usr/src/larkbox-fan-0.1.0/
-dkms add -m larkbox-fan -v 0.1.0
-dkms build -m larkbox-fan -v 0.1.0 -k "$(uname -r)"
-dkms install -m larkbox-fan -v 0.1.0 -k "$(uname -r)"
+    "/usr/src/larkbox-fan-$version"/
+dkms add -m larkbox-fan -v "$version"
+dkms build -m larkbox-fan -v "$version" -k "$(uname -r)"
+dkms install -m larkbox-fan -v "$version" -k "$(uname -r)"
 # Cover installed fallback boot images too; DKMS autoinstall covers future kernels.
 for kernel_image in /boot/vmlinuz-*; do
     [ -f "$kernel_image" ] || continue
@@ -45,8 +48,8 @@ for kernel_image in /boot/vmlinuz-*; do
         continue
     fi
     printf 'Building fan support for fallback kernel %s…\n' "$kernel_version"
-    dkms build -m larkbox-fan -v 0.1.0 -k "$kernel_version"
-    dkms install -m larkbox-fan -v 0.1.0 -k "$kernel_version"
+    dkms build -m larkbox-fan -v "$version" -k "$kernel_version"
+    dkms install -m larkbox-fan -v "$version" -k "$kernel_version"
 done
 printf 'Checking firmware compatibility in read-only mode…\n'
 modprobe larkbox_fan allow_control=0

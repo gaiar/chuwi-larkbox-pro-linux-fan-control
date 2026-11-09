@@ -17,7 +17,8 @@ import larkbox_fan as fan
         ("min_on_s", float("inf")),
         ("off_c", 39),
         ("off_c", 56),
-        ("on_c", 60),
+        ("on_c", 63.1),
+        ("on_c", 64),
         ("min_on_s", 9),
         ("min_on_s", 301),
         ("cool_delay_s", 1),
@@ -41,10 +42,10 @@ def test_bad_config(tmp_path, data):
 
 def test_good_config(tmp_path):
     path = tmp_path / "config.json"
-    path.write_text('{"on_c": 59, "off_c": 49}')
+    path.write_text('{"on_c": 63, "off_c": 50}')
     profile = fan.load_profile(path)
-    assert profile.on_c == 59
-    assert profile.off_c == 49
+    assert profile.on_c == 63
+    assert profile.off_c == 50
     assert profile.interval_s == 0.5
 
 
@@ -60,6 +61,16 @@ def test_hysteresis_and_minimum_run():
     for tick in range(34, 62):
         assert policy.update(49, tick)
     assert not policy.update(49, 62)
+
+
+def test_highest_on_threshold_ignores_lower_spikes():
+    policy = fan.Policy(fan.Profile(on_c=63), 0)
+    for tick in range(30):
+        assert policy.update(45, tick)
+    assert not policy.update(45, 30)
+    assert not policy.update(62.9, 30.5)
+    assert not policy.update(50, 31)
+    assert policy.update(63, 31.5)
 
 
 def test_cooling_must_stay_below_threshold():

@@ -44,3 +44,15 @@
   diagnostic commands and distinction from BIOS automatic power-on behavior.
 - Full local checks: 43 tests, 100% Python statement/branch coverage, Ruff, mypy,
   ShellCheck and actionlint passed. Driver source and thermal policy unchanged.
+
+## 63°C switch-on threshold — 0.2.0
+
+- Two weeks of logs showed the 58°C profile starting the fan three to four
+  times a day, almost always for the 30-second minimum after short load spikes.
+- Kernel off-admission limit raised from 60°C to 64°C; `on_c` may now be up to
+  63°C. The 65°C emergency guard and firmware STMP=65 threshold are unchanged.
+  The shipped default remains the validated 58°C profile.
+- Installer and uninstaller remove every registered DKMS version.
+- 45 tests, 100% statement/branch coverage, Ruff, mypy and ShellCheck passed.
+- Live check with `on_c` 63 passed: no switch-on at 59–61°C, off accepted at
+  62°C TCPU, on at 63°C, peak 65°C, no faults. See docs/validation.md.

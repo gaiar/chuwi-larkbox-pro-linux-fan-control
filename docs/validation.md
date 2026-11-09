@@ -87,6 +87,34 @@ measured starting profile, not a globally optimal curve for every environment.
 Historical throttle counters existed before this work and did not increase during
 the sampled checks; this is not a claim that the machine has never throttled.
 
+## 63°C threshold (0.2.0)
+
+Two weeks of service logs showed the 58°C profile starting the fan three to four
+times a day, almost always for only the 30-second minimum. Switch-on readings
+were 58–59°C (24), 60–61°C (14) and 62–63°C (9): short load spikes. Driver 0.2.0
+raises the off-admission limit from 60°C to 64°C so `on_c` can be 63°C. The
+65°C emergency guard and firmware STMP=65 threshold are unchanged.
+
+During idle sampling, the kernel's ACPI TCPU reading (guard input) was 0–7°C
+below, and on average 2.2°C below, the hottest coretemp reading (daemon input).
+
+Live check, 2026-11-09, kernel 6.8.0-149, `on_c` 63 / `off_c` 50: four-worker
+OpenSSL SHA-256 at nice +19, started from 44°C with the fan off and stopped
+30 seconds after the fan started; 0.25-second samples.
+
+| Observation | Result |
+| --- | --- |
+| Fan off at hottest 59–61°C | 5.2 s total; no switch-on (58°C profile would have started) |
+| Highest TCPU accepted with fan off | 62°C (0.1.0 would refuse off at 60°C) |
+| Fan switched on | t = 7.1 s, hottest 63°C, TCPU 61°C |
+| Peak with fan on | hottest 65°C, TCPU 65°C |
+| Driver faults | none in 304 samples |
+| Fan off after load stopped | 49.8 s later, hottest 46°C |
+
+A sudden spike from below 63°C straight to 65°C TCPU between samples would still
+trigger the kernel's emergency full-on and stop the service. Sustained full load
+reaches 63°C within seconds, so this mainly removes short-spike runs.
+
 ## Still unverified
 
 - Cold boot after AC loss, BIOS reset and the installed service's first reboot.

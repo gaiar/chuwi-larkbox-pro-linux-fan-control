@@ -12,9 +12,11 @@ if [ -d /sys/module/larkbox_fan ]; then
     fi
     rmmod larkbox_fan
 fi
-if dkms status -m larkbox-fan -v 0.1.0 | grep -q .; then
-    dkms remove -m larkbox-fan -v 0.1.0 --all
-fi
+# Remove every registered version, including releases before this script.
+for registered in $(dkms status -m larkbox-fan |
+    sed -n 's|^larkbox-fan[/, ]\{1,2\}\([^,:]*\)[,:].*|\1|p' | sort -u); do
+    dkms remove -m larkbox-fan -v "$registered" --all
+done
 rm -f /etc/systemd/system/larkbox-fan.service \
     /etc/systemd/system/larkbox-fan-prepare.service /etc/modprobe.d/larkbox-fan.conf \
     /etc/modules-load.d/larkbox-fan.conf

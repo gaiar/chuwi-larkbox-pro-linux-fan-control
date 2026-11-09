@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "larkbox-fan"
-version = "0.1.0"
+version = "0.2.0"
 description = "Quiet, fail-safe Ubuntu fan control for CHUWI LarkBox Pro"
 readme = "README.md"
 license = {file = "LICENSE"}

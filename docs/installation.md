@@ -105,12 +105,12 @@ and [one-shot service behavior](https://www.freedesktop.org/software/systemd/man
 
 ## Kernel upgrades
 
-DKMS registers `larkbox-fan/0.1.0` and rebuilds for new kernels when matching headers
+DKMS registers `larkbox-fan/0.2.0` and rebuilds for new kernels when matching headers
 are available. The module and service are configured to load at boot. Build and
 verify the next kernel before rebooting:
 
 ```sh
-dkms status -m larkbox-fan -v 0.1.0
+dkms status -m larkbox-fan -v 0.2.0
 # Substitute the actual installed next-kernel version:
 sudo dkms autoinstall -k NEXT_KERNEL_VERSION
 modinfo -k NEXT_KERNEL_VERSION larkbox_fan

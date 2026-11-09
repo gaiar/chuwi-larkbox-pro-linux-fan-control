@@ -35,8 +35,9 @@ class Profile:
                 raise ValueError(f"{name} must be a number")
             if not math.isfinite(value):
                 raise ValueError(f"{name} must be finite")
-        if not 40 <= self.off_c <= self.on_c - 5 or not self.on_c <= 59:
-            raise ValueError("Require 40 <= off_c <= on_c - 5 and on_c <= 59")
+        # The kernel refuses off leases at 64 C, so cooling must start by 63 C.
+        if not 40 <= self.off_c <= self.on_c - 5 or not self.on_c <= 63:
+            raise ValueError("Require 40 <= off_c <= on_c - 5 and on_c <= 63")
         if not 10 <= self.min_on_s <= 300:
             raise ValueError("min_on_s must be between 10 and 300")
         if not 2 <= self.cool_delay_s <= 60:

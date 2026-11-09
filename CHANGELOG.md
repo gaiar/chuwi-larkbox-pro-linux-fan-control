@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
+- Raise the kernel off-admission limit from 60°C to 64°C and allow `on_c` up
+  to 63°C, still below the firmware's 65°C Smart Fan and emergency limits.
+- Install and uninstall remove every registered DKMS version before upgrading.
 - Require explicit CPU sensor and fan-driver preparation before daemon startup.
 - Report module-load failures instead of silently skipping the service.
 - Build support for installed fallback kernels when their headers are present.

@@ -56,3 +56,6 @@
 - 45 tests, 100% statement/branch coverage, Ruff, mypy and ShellCheck passed.
 - Live check with `on_c` 63 passed: no switch-on at 59–61°C, off accepted at
   62°C TCPU, on at 63°C, peak 65°C, no faults. See docs/validation.md.
+- The service now restarts after a fault (5 s delay), at most five times in
+  ten minutes; every start begins with full cooling, and repeated faults stay
+  full-on for diagnosis. Unit verified with systemd-analyze (systemd 255).

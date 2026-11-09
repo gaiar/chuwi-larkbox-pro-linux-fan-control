@@ -33,11 +33,13 @@ and the fan pin’s lack of hardware PWM multiplexing.
 ## What it does
 
 - Samples CPU package and all four core temperatures; uses the hottest reading.
-- Starts cooling immediately at 58°C; allows stopping at/below 50°C after a stable
-  10-second cooling period and a minimum 30-second fan run.
+- Starts cooling immediately at 58°C by default (configurable up to 63°C); allows
+  stopping at/below 50°C after a stable 10-second cooling period and a minimum
+  30-second fan run.
 - Uses a three-second kernel off lease and independent temperature guard.
 - Requests full cooling on service exit, missed leases, temperature faults,
-  suspend/resume and module unload.
+  suspend/resume and module unload; restarts after occasional faults, at most
+  five times in ten minutes.
 - Loads the driver and CPU sensors before starting on every Ubuntu boot.
 - Builds through DKMS for kernel updates and installed fallback kernels with headers.
 - Leaves CPU Turbo, clock/power policy and thermald in place.
@@ -79,8 +81,9 @@ sudo systemctl restart larkbox-fan
 ```
 
 The [configuration guide](docs/configuration.md) explains every parameter, safe
-bounds, alternative thresholds, microphone measurement and rollback. Wider
-hysteresis and minimum run time reduce frequent starts/stops. The best settings
+bounds, alternative thresholds, microphone measurement and rollback. A higher
+`on_c` (up to 63°C) ignores more short load spikes; wider hysteresis and minimum
+run time make each run longer but less frequent. The best settings
 depend on airflow, ambient temperature and workload.
 
 ## Why Linux needs this

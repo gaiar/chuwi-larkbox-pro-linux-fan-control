@@ -2,11 +2,15 @@
 Description=Quiet temperature-controlled fan for CHUWI LarkBox Pro
 Requires=larkbox-fan-prepare.service
 After=larkbox-fan-prepare.service
+# Recover from transient faults; five failures in ten minutes stay full-on.
+StartLimitIntervalSec=10min
+StartLimitBurst=5
 
 [Service]
 Type=exec
 ExecStart=/opt/larkbox-fan/venv/bin/python /opt/larkbox-fan/larkbox_fan.py --config /etc/larkbox-fan.json
-Restart=no
+Restart=on-failure
+RestartSec=5s
 TimeoutStopSec=6
 RuntimeDirectory=larkbox-fan
 RuntimeDirectoryMode=0755

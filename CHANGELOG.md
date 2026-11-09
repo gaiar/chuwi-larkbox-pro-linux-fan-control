@@ -5,6 +5,8 @@
 - Raise the kernel off-admission limit from 60°C to 64°C and allow `on_c` up
   to 63°C, still below the firmware's 65°C Smart Fan and emergency limits.
 - Install and uninstall remove every registered DKMS version before upgrading.
+- Restart the service after a fault, at most five times in ten minutes; each
+  start begins with full cooling.
 - Require explicit CPU sensor and fan-driver preparation before daemon startup.
 - Report module-load failures instead of silently skipping the service.
 - Build support for installed fallback kernels when their headers are present.

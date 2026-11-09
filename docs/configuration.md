@@ -30,16 +30,17 @@ power limits are unchanged.
 For more conservative cooling, try `on_c: 55`, `off_c: 47` with other defaults.
 For fewer starts/stops, lower `off_c` or increase `min_on_s`; that makes each
 cooling run longer. Raising `on_c` can lengthen quiet intervals but raises peak
-temperature. Short load spikes on the J4125 often reach 58–63°C for a few
-seconds; `on_c: 63` ignores more of them and still starts cooling below the
-firmware's own 65°C Smart Fan threshold. Keep airflow unobstructed and measure on your actual machine.
-There is no universal optimum for every room, placement and workload.
+temperature. Short load spikes on the J4125 often reach 58–63°C for a few seconds;
+`on_c: 63` ignores more of them and still starts cooling below the firmware's own
+65°C Smart Fan threshold. Keep airflow unobstructed and measure on your actual
+machine. There is no universal optimum for every room, placement and workload.
 
 The service reads the hottest of package plus all four core sensors. Missing or
 invalid readings, delayed loops or kernel faults stop it and request full-on.
 The kernel's fixed 64°C off-admission limit, 65°C emergency limit and three-second
-lease cannot be relaxed in the JSON file. The service does not restart itself
-after a fault; inspect the journal before restarting it.
+lease cannot be relaxed in the JSON file. After a fault, the service restarts
+with full cooling, at most five times in ten minutes; see
+[boot and fault behavior](installation.md#automatic-control-after-power-off-or-ac-loss).
 
 ## Measure sound without saving recordings
 

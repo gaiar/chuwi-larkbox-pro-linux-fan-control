@@ -76,8 +76,14 @@ again on each daemon start. Driver initialization requests full cooling; the
 daemon keeps it on for at least 30 seconds before considering a quiet interval.
 
 Module failures are visible in the preparation unit and prevent daemon startup.
-Runtime faults retain full cooling and require diagnosis and a deliberate service
-restart; the daemon does not repeatedly restart and clear a safety fault.
+Runtime faults request full cooling, and the daemon exits. systemd restarts it
+after 5 seconds. Each start first commands full cooling, which clears the kernel
+fault, and keeps the fan on for at least 30 seconds. Five failures within ten
+minutes stop restarts: the service stays failed with full cooling until
+diagnosed and restarted deliberately.
+This bounds automatic recovery to occasional faults, such as a missed deadline
+under memory pressure or a spike past the 65°C guard. Check
+`systemctl show larkbox-fan -p NRestarts` for recoveries since the last start.
 
 ```sh
 systemctl is-enabled larkbox-fan.service
@@ -142,7 +148,9 @@ ACPI evidence; do not remove the compatibility gate.
 - `control_enabled: 0`: module is in read-only mode. Stop the service, unload it,
   then load with `sudo modprobe larkbox_fan allow_control=1` and start the service.
 - `lease_expired`, temperature or output errors: inspect `journalctl -u larkbox-fan`
-  and `journalctl -k`. Full cooling is requested. Resolve the cause, then restart.
+  and `journalctl -k`. Full cooling is requested and the service restarts itself
+  up to five times in ten minutes. If it remains failed, resolve the cause, then
+  run `sudo systemctl reset-failed larkbox-fan` and `sudo systemctl restart larkbox-fan`.
 - No RPM: the confirmed firmware interface exposes only an on/off output.
 
 ```sh
